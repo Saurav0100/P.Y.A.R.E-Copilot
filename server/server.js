@@ -1,189 +1,523 @@
 const express = require("express");
+const mongoose = require("mongoose");
+
+require("dotenv").config();
 
 const app = express();
 
-const PORT = 5000;
-
-// ==========================================
-// CORS
-// ==========================================
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:5174");
-  res.header(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,DELETE,OPTIONS"
-  );
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-
-  // Handle browser preflight requests
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-
-  next();
-});
-
-// ==========================================
-// JSON BODY PARSER
-// ==========================================
 app.use(express.json());
 
-// ==========================================
-// HOME API
-// ==========================================
+
+// ===============================
+// SCHEMAS
+// ===============================
+
+const telemetrySchema = new mongoose.Schema({
+    id: String,
+    timestamp: String,
+    battery: Number,
+    voltage: Number,
+    temperature: Number,
+    power_consumption: Number,
+    signal_strength: Number,
+    communication_status: String,
+    navigation_status: String,
+    payload_status: String
+});
+
+const logSchema = new mongoose.Schema({
+    log_id: String,
+    timestamp: String,
+    subsystem: String,
+    severity: String,
+    event: String,
+    description: String
+});
+
+const incidentSchema = new mongoose.Schema({
+    incident_id: String,
+    date: String,
+    subsystem: String,
+    severity: String,
+    symptoms: [String],
+    root_cause: String,
+    resolution: [String],
+    operator_action: String,
+    status: String
+});
+
+const procedureSchema = new mongoose.Schema({
+    filename: String,
+    content: String
+});
+
+
+// ===============================
+// MODELS
+// ===============================
+
+const Telemetry = mongoose.model("Telemetry", telemetrySchema);
+const MissionLog = mongoose.model("MissionLog", logSchema);
+const Incident = mongoose.model("Incident", incidentSchema);
+const Procedure = mongoose.model("Procedure", procedureSchema);
+
+
+// ===============================
+// HOME
+// ===============================
+
 app.get("/", (req, res) => {
-  res.json({
-    message: "P.Y.A.R.E. Backend is running 🚀",
-  });
+
+    res.send("P.Y.A.R.E. server is running!");
+
 });
 
-// ==========================================
+
+// ===============================
 // TELEMETRY API
-// ==========================================
-app.get("/api/telemetry", (req, res) => {
-  res.json({
-    satellite: "ORBIT-X1",
-    subsystem: "Communication",
+// ===============================
 
-    telemetry: [
-      {
-        time: "14:30",
-        voltage: 21.4,
-        temperature: 34,
-        status: "Normal",
-      },
-      {
-        time: "14:31",
-        voltage: 20.8,
-        temperature: 38,
-        status: "Normal",
-      },
-      {
-        time: "14:32",
-        voltage: 16.8,
-        temperature: 47,
-        status: "Degraded",
-      },
-      {
-        time: "14:33",
-        voltage: 15.9,
-        temperature: 51,
-        status: "Failed",
-      },
-    ],
-  });
+app.get("/api/telemetry", async (req, res) => {
+
+    try {
+
+        const filter = {};
+
+        // Communication status filter
+        if (req.query.communication_status) {
+            filter.communication_status =
+                req.query.communication_status.toUpperCase();
+        }
+
+        // Navigation status filter
+        if (req.query.navigation_status) {
+            filter.navigation_status =
+                req.query.navigation_status.toUpperCase();
+        }
+
+        // Payload status filter
+        if (req.query.payload_status) {
+            filter.payload_status =
+                req.query.payload_status.toUpperCase();
+        }
+
+        const telemetry = await Telemetry.find(filter);
+
+        res.json({
+            count: telemetry.length,
+            filters: filter,
+            data: telemetry
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            error: error.message
+        });
+
+    }
+
 });
 
-// ==========================================
+
+// ===============================
+// LOGS API
+// ===============================
+
+app.get("/api/logs", async (req, res) => {
+
+    try {
+
+        const filter = {};
+
+        // Severity filter
+        if (req.query.severity) {
+            filter.severity =
+                req.query.severity.toUpperCase();
+        }
+
+        // Subsystem filter
+        if (req.query.subsystem) {
+            filter.subsystem =
+                req.query.subsystem.toUpperCase();
+        }
+
+        const logs = await MissionLog.find(filter);
+
+        res.json({
+            count: logs.length,
+            filters: filter,
+            data: logs
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            error: error.message
+        });
+
+    }
+
+});
+
+
+// ===============================
 // INCIDENTS API
-// ==========================================
-app.get("/api/incidents", (req, res) => {
-  res.json({
-    incidents: [
-      {
-        id: "INC-001",
-        satellite: "ORBIT-X1",
-        subsystem: "Communication",
-        title: "Communication subsystem failure",
-        severity: "HIGH",
-        status: "Active",
-        detectedAt: "14:32:01",
+// ===============================
 
-        description:
-          "Communication subsystem experienced abnormal voltage and temperature conditions.",
-      },
-    ],
-  });
+app.get("/api/incidents", async (req, res) => {
+
+    try {
+
+        const filter = {};
+
+        // Subsystem filter
+        if (req.query.subsystem) {
+            filter.subsystem =
+                req.query.subsystem;
+        }
+
+        // Severity filter
+        if (req.query.severity) {
+            filter.severity =
+                req.query.severity.toUpperCase();
+        }
+
+        const incidents = await Incident.find(filter);
+
+        res.json({
+            count: incidents.length,
+            filters: filter,
+            data: incidents
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            error: error.message
+        });
+
+    }
+
 });
 
-// ==========================================
-// P.Y.A.R.E. ANALYSIS API
-// ==========================================
-app.post("/api/analyze", (req, res) => {
-  res.json({
-    incidentId: "INC-001",
 
-    satellite: "ORBIT-X1",
+// ===============================
+// PROCEDURES API
+// ===============================
 
-    subsystem: "Communication",
+app.get("/api/procedures", async (req, res) => {
 
-    conclusion: "Communication power instability",
+    try {
 
-    confidence: 87,
+        const procedures = await Procedure.find();
 
-    severity: "HIGH",
+        res.json({
+            count: procedures.length,
+            data: procedures
+        });
 
-    reasoning:
-      "Telemetry shows a significant voltage drop from 21.4V to 15.9V while temperature increased from 34°C to 51°C. The communication subsystem then transitioned from normal to degraded and finally failed.",
+    } catch (error) {
 
-    evidence: [
-      {
-        source: "Telemetry #2841",
-        finding: "Voltage dropped from 21.4V to 15.9V.",
-      },
+        res.status(500).json({
+            error: error.message
+        });
 
-      {
-        source: "Mission Log #182",
-        finding:
-          "Communication subsystem reported abnormal voltage.",
-      },
+    }
 
-      {
-        source: "Historical Incident M-21",
-        finding:
-          "Similar voltage and temperature pattern was previously observed.",
-      },
-
-      {
-        source: "Procedure COM-07",
-        finding:
-          "Procedure recommends checking communication power supply and transmitter temperature.",
-      },
-    ],
-
-    recommendations: [
-      "Check communication power supply.",
-      "Check transmitter temperature.",
-      "Check antenna status.",
-    ],
-
-    timeline: [
-      {
-        time: "14:32:01",
-        event: "Incident detected",
-      },
-
-      {
-        time: "14:32:05",
-        event: "Telemetry retrieved",
-      },
-
-      {
-        time: "14:32:08",
-        event: "Previous incident matched",
-      },
-
-      {
-        time: "14:32:10",
-        event: "AI analysis generated",
-      },
-
-      {
-        time: "14:32:11",
-        event: "Recommendations generated",
-      },
-    ],
-  });
 });
 
-// ==========================================
-// START SERVER
-// ==========================================
-app.listen(PORT, () => {
-  console.log(
-    `P.Y.A.R.E. Backend running on http://localhost:${PORT}`
-  );
+
+// ===============================
+// P.Y.A.R.E. ASK API
+// ===============================
+
+app.get("/api/ask", async (req, res) => {
+
+    const originalQuestion = req.query.question || "";
+    const question = originalQuestion.toLowerCase();
+
+    if (!question) {
+
+        return res.status(400).json({
+            error: "Please provide a question"
+        });
+
+    }
+
+    try {
+
+        const answer = {
+
+            question: originalQuestion,
+
+            message: "",
+
+            evidence: {
+
+                telemetry: [],
+
+                logs: [],
+
+                incidents: [],
+
+                procedures: []
+
+            }
+
+        };
+
+
+        // ===============================
+        // COMMUNICATION FAILURE
+        // ===============================
+
+        if (
+            question.includes("communication") &&
+            (
+                question.includes("fail") ||
+                question.includes("failure")
+            )
+        ) {
+
+            const telemetry = await Telemetry.find({
+
+                communication_status: {
+                    $in: ["DEGRADED", "FAILED"]
+                }
+
+            });
+
+            const logs = await MissionLog.find({
+
+                subsystem: "COMMUNICATION"
+
+            });
+
+            const incidents = await Incident.find({
+
+                subsystem: "Communication"
+
+            });
+
+            const procedures = await Procedure.find({
+
+                filename: "communication_failure.md"
+
+            });
+
+
+            answer.message =
+                "The communication subsystem experienced degradation followed by failure. Telemetry shows decreasing signal strength, decreasing voltage, and increasing temperature.";
+
+
+            answer.evidence.telemetry =
+                telemetry;
+
+            answer.evidence.logs =
+                logs;
+
+            answer.evidence.incidents =
+                incidents;
+
+            answer.evidence.procedures =
+                procedures;
+
+        }
+
+
+        // ===============================
+        // BATTERY / POWER
+        // ===============================
+
+        else if (
+            question.includes("battery") ||
+            question.includes("power")
+        ) {
+
+            const telemetry = await Telemetry.find();
+
+            const logs = await MissionLog.find({
+
+                subsystem: "POWER"
+
+            });
+
+            const incidents = await Incident.find({
+
+                subsystem: "Power"
+
+            });
+
+            const procedures = await Procedure.find({
+
+                filename: "battery_anomaly.md"
+
+            });
+
+
+            answer.message =
+                "The spacecraft is experiencing a power-system anomaly. Battery level and voltage are decreasing, while mission logs indicate declining power reserve.";
+
+
+            answer.evidence.telemetry =
+                telemetry;
+
+            answer.evidence.logs =
+                logs;
+
+            answer.evidence.incidents =
+                incidents;
+
+            answer.evidence.procedures =
+                procedures;
+
+        }
+
+
+        // ===============================
+        // UNKNOWN QUESTION
+        // ===============================
+
+        else {
+
+            answer.message =
+                "Insufficient evidence in the available mission data to answer this question.";
+
+        }
+
+
+        res.json(answer);
+
+    } catch (error) {
+
+        res.status(500).json({
+
+            error: error.message
+
+        });
+
+    }
+
 });
+
+
+// ===============================
+// MISSION DATA SEARCH API
+// ===============================
+
+app.get("/api/search", async (req, res) => {
+
+    const query = (req.query.q || "").toLowerCase();
+
+    if (!query) {
+
+        return res.status(400).json({
+
+            error: "Please provide a search query"
+
+        });
+
+    }
+
+    try {
+
+        const logs =
+            await MissionLog.find();
+
+        const incidents =
+            await Incident.find();
+
+        const procedures =
+            await Procedure.find();
+
+
+        const matchingLogs =
+            logs.filter((log) =>
+
+                JSON.stringify(log)
+                    .toLowerCase()
+                    .includes(query)
+
+            );
+
+
+        const matchingIncidents =
+            incidents.filter((incident) =>
+
+                JSON.stringify(incident)
+                    .toLowerCase()
+                    .includes(query)
+
+            );
+
+
+        const matchingProcedures =
+            procedures.filter((procedure) =>
+
+                JSON.stringify(procedure)
+                    .toLowerCase()
+                    .includes(query)
+
+            );
+
+
+        res.json({
+
+            query: query,
+
+            results: {
+
+                logs: matchingLogs,
+
+                incidents: matchingIncidents,
+
+                procedures: matchingProcedures
+
+            }
+
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+
+            error: error.message
+
+        });
+
+    }
+
+});
+
+
+// ===============================
+// MONGODB CONNECTION
+// ===============================
+
+mongoose.connect(process.env.MONGO_URI)
+
+    .then(() => {
+
+        console.log(
+            "MongoDB connected successfully"
+        );
+
+        app.listen(3000, () => {
+
+            console.log(
+                "Server running on http://localhost:3000"
+            );
+
+        });
+
+    })
+
+    .catch((error) => {
+
+        console.log(
+            "MongoDB connection failed:",
+            error.message
+        );
+
+    });

@@ -1,0 +1,5 @@
+ORBIT-X1 MISSION LOGS
+
+14:32 - Abnormal voltage detected in communication subsystem.
+14:32 - Communication subsystem entered degraded state.
+14:33 - Ground communication lost.

@@ -1,0 +1,6 @@
+COMMUNICATION FAILURE PROCEDURE
+
+1. Check the communication power supply.
+2. Check transmitter temperature.
+3. Verify antenna subsystem status.
+4. Compare current telemetry with previous communication failures.

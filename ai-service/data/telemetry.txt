@@ -1,0 +1,8 @@
+ORBIT-X1 TELEMETRY
+
+14:30 - Communication voltage: 21.4V
+14:31 - Communication voltage: 20.8V
+14:32 - Communication voltage: 16.8V
+14:32 - Communication subsystem: DEGRADED
+14:32 - Transmitter temperature: 51°C
+14:33 - Communication with ground station: LOST

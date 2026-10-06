@@ -1,0 +1,6 @@
+PREVIOUS INCIDENT M-21
+
+A similar communication failure occurred after a significant voltage drop.
+
+Root cause:
+Instability in the communication power subsystem.
