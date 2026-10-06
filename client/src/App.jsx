@@ -1,21 +1,35 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "./App.css";
+import PyareChat from "./components/PyareChat";
 
 function App() {
   const [page, setPage] = useState("dashboard");
-
   const [analysisRunning, setAnalysisRunning] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [analysisStep, setAnalysisStep] = useState(0);
 
-  const [telemetry, setTelemetry] = useState(null);
-  const [analysisData, setAnalysisData] = useState(null);
+  const runAnalysis = () => {
+    setAnalysisRunning(true);
+    setAnalysisComplete(false);
+    setAnalysisStep(1);
 
-  const API_URL = "http://localhost:5000";
+    setTimeout(() => {
+      setAnalysisStep(2);
+    }, 700);
 
-  // ==========================================
-  // NAVIGATION
-  // ==========================================
+    setTimeout(() => {
+      setAnalysisStep(3);
+    }, 1400);
+
+    setTimeout(() => {
+      setAnalysisStep(4);
+    }, 2100);
+
+    setTimeout(() => {
+      setAnalysisRunning(false);
+      setAnalysisComplete(true);
+    }, 2800);
+  };
 
   const navigate = (targetPage) => {
     setPage(targetPage);
@@ -26,81 +40,6 @@ function App() {
       setAnalysisStep(0);
     }
   };
-
-  // ==========================================
-  // GET TELEMETRY FROM BACKEND
-  // ==========================================
-
-  useEffect(() => {
-    fetch(`${API_URL}/api/telemetry`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Telemetry request failed");
-        }
-
-        return response.json();
-      })
-      .then((data) => {
-        setTelemetry(data);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch telemetry:", error);
-      });
-  }, []);
-
-  // ==========================================
-  // RUN P.Y.A.R.E. ANALYSIS
-  // ==========================================
-
-  const runAnalysis = async () => {
-    setAnalysisRunning(true);
-    setAnalysisComplete(false);
-    setAnalysisStep(1);
-    setAnalysisData(null);
-
-    try {
-      const response = await fetch(`${API_URL}/api/analyze`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Analysis request failed");
-      }
-
-      setAnalysisStep(2);
-
-      const data = await response.json();
-
-      setAnalysisData(data);
-
-      setAnalysisStep(3);
-
-      setTimeout(() => {
-        setAnalysisStep(4);
-
-        setTimeout(() => {
-          setAnalysisRunning(false);
-          setAnalysisComplete(true);
-        }, 500);
-      }, 500);
-    } catch (error) {
-      console.error("P.Y.A.R.E. analysis failed:", error);
-      setAnalysisRunning(false);
-    }
-  };
-
-  // ==========================================
-  // CURRENT TELEMETRY VALUES
-  // ==========================================
-
-  const latestTelemetry =
-    telemetry?.telemetry?.[telemetry.telemetry.length - 1];
-
-  const currentVoltage = latestTelemetry?.voltage;
-  const currentTemperature = latestTelemetry?.temperature;
 
   return (
     <div className="app">
@@ -124,6 +63,7 @@ function App() {
 
         <nav className="navigation">
 
+          {/* DASHBOARD */}
           <button
             className={`nav-item ${
               page === "dashboard" ? "active" : ""
@@ -134,6 +74,7 @@ function App() {
             Dashboard
           </button>
 
+          {/* TELEMETRY */}
           <button
             className={`nav-item ${
               page === "telemetry" ? "active" : ""
@@ -144,6 +85,7 @@ function App() {
             Telemetry
           </button>
 
+          {/* INCIDENTS */}
           <button
             className={`nav-item ${
               page === "incidents" ? "active" : ""
@@ -154,6 +96,7 @@ function App() {
             Incidents
           </button>
 
+          {/* P.Y.A.R.E. AI */}
           <button
             className={`nav-item ${
               page === "pyare" ? "active" : ""
@@ -180,6 +123,8 @@ function App() {
       ========================= */}
 
       <main className="main-content">
+
+        {/* HEADER */}
 
         <header className="top-header">
 
@@ -222,6 +167,8 @@ function App() {
             </div>
 
 
+            {/* STATUS CARDS */}
+
             <div className="status-grid">
 
               <div className="status-card">
@@ -248,13 +195,11 @@ function App() {
                 </div>
 
                 <strong>
-                  {currentTemperature !== undefined
-                    ? `${currentTemperature}°C`
-                    : "Loading..."}
+                  43°C
                 </strong>
 
                 <small>
-                  Current telemetry
+                  Normal range
                 </small>
 
               </div>
@@ -298,6 +243,8 @@ function App() {
             </div>
 
 
+            {/* ACTIVE INCIDENT */}
+
             <div className="incident-banner">
 
               <div className="incident-symbol">
@@ -332,7 +279,11 @@ function App() {
             </div>
 
 
+            {/* LOWER DASHBOARD */}
+
             <div className="dashboard-grid">
+
+              {/* TELEMETRY OVERVIEW */}
 
               <div className="panel">
 
@@ -351,12 +302,7 @@ function App() {
 
                 <div className="telemetry-row">
                   <span>Voltage</span>
-
-                  <strong>
-                    {currentVoltage !== undefined
-                      ? `${currentVoltage} V`
-                      : "Loading..."}
-                  </strong>
+                  <strong>15.9 V</strong>
                 </div>
 
                 <div className="telemetry-row">
@@ -376,6 +322,8 @@ function App() {
 
               </div>
 
+
+              {/* P.Y.A.R.E. CARD */}
 
               <div className="panel pyare-card">
 
@@ -439,6 +387,8 @@ function App() {
 
             <div className="telemetry-page-grid">
 
+              {/* POWER */}
+
               <div className="panel">
 
                 <div className="panel-header">
@@ -454,23 +404,13 @@ function App() {
                 </div>
 
                 <div className="big-value">
-
-                  {currentVoltage !== undefined
-                    ? `${currentVoltage} V`
-                    : "Loading..."}
-
+                  15.9 V
                 </div>
 
                 <div className="fake-chart">
 
                   <div className="chart-line">
-
-                    {telemetry?.telemetry
-                      ? telemetry.telemetry
-                          .map((item) => item.voltage)
-                          .join(" → ") + " V"
-                      : "Loading..."}
-
+                    21.4 → 20.8 → 16.8 → 15.9 V
                   </div>
 
                 </div>
@@ -482,6 +422,8 @@ function App() {
 
               </div>
 
+
+              {/* THERMAL */}
 
               <div className="panel">
 
@@ -498,11 +440,7 @@ function App() {
                 </div>
 
                 <div className="big-value">
-
-                  {currentTemperature !== undefined
-                    ? `${currentTemperature}°C`
-                    : "Loading..."}
-
+                  51°C
                 </div>
 
                 <div className="thermal-bar">
@@ -515,6 +453,8 @@ function App() {
 
               </div>
 
+
+              {/* COMMUNICATION */}
 
               <div className="panel">
 
@@ -540,6 +480,8 @@ function App() {
 
               </div>
 
+
+              {/* ORBIT */}
 
               <div className="panel">
 
@@ -600,6 +542,8 @@ function App() {
 
             <div className="incident-list">
 
+              {/* ACTIVE INCIDENT */}
+
               <div className="incident-card high">
 
                 <div className="incident-card-icon">
@@ -637,6 +581,8 @@ function App() {
               </div>
 
 
+              {/* BATTERY */}
+
               <div className="incident-card">
 
                 <div className="incident-card-icon">
@@ -666,6 +612,8 @@ function App() {
 
               </div>
 
+
+              {/* THERMAL */}
 
               <div className="incident-card">
 
@@ -727,8 +675,11 @@ function App() {
 
             </div>
 
-
+            <PyareChat />
+            
             <div className="panel investigation-panel">
+
+              {/* INVESTIGATION HEADER */}
 
               <div className="pyare-header">
 
@@ -759,6 +710,8 @@ function App() {
               </p>
 
 
+              {/* EVIDENCE INPUT */}
+
               <div className="analysis-grid">
 
                 <div className="evidence-card">
@@ -768,9 +721,7 @@ function App() {
                   </span>
 
                   <strong>
-                    {currentVoltage !== undefined
-                      ? `${currentVoltage} V`
-                      : "Loading..."}
+                    15.9 V
                   </strong>
 
                   <small>
@@ -804,9 +755,7 @@ function App() {
                   </span>
 
                   <strong>
-                    {currentTemperature !== undefined
-                      ? `${currentTemperature}°C`
-                      : "Loading..."}
+                    51°C
                   </strong>
 
                   <small>
@@ -818,8 +767,9 @@ function App() {
               </div>
 
 
-              {analysisRunning && (
+              {/* ANALYSIS PROGRESS */}
 
+              {analysisRunning && (
                 <div className="analysis-progress">
 
                   <div className="progress-title">
@@ -911,9 +861,10 @@ function App() {
                   </div>
 
                 </div>
-
               )}
 
+
+              {/* ANALYSIS BUTTON */}
 
               {!analysisComplete && (
 
@@ -930,9 +881,13 @@ function App() {
               )}
 
 
-              {analysisComplete && analysisData && (
+              {/* ANALYSIS RESULT */}
+
+              {analysisComplete && (
 
                 <div className="analysis-result">
+
+                  {/* RESULT HEADER */}
 
                   <div className="result-header">
 
@@ -955,7 +910,7 @@ function App() {
                       </span>
 
                       <strong>
-                        {analysisData.confidence}%
+                        87%
                       </strong>
 
                     </div>
@@ -963,18 +918,28 @@ function App() {
                   </div>
 
 
+                  {/* ROOT CAUSE */}
+
                   <div className="root-cause">
 
                     <h3>
-                      {analysisData.conclusion}
+                      Communication power instability
                     </h3>
 
                     <p>
-                      {analysisData.reasoning}
+                      P.Y.A.R.E. detected a strong
+                      correlation between falling
+                      communication bus voltage,
+                      rising subsystem temperature,
+                      and degraded signal strength
+                      immediately before the
+                      communication failure.
                     </p>
 
                   </div>
 
+
+                  {/* REASONING BRIDGE */}
 
                   <div className="reasoning-bridge">
 
@@ -999,49 +964,149 @@ function App() {
                   </div>
 
 
+                  {/* EVIDENCE CHAIN */}
+
                   <div className="evidence-section">
 
                     <h3>
                       Evidence Chain
                     </h3>
 
-                    {analysisData.evidence?.map((item, index) => (
 
-                      <div
-                        className="evidence-item"
-                        key={index}
-                      >
+                    {/* EVIDENCE 01 */}
 
-                        <div className="evidence-number">
-                          {String(index + 1).padStart(2, "0")}
-                        </div>
+                    <div className="evidence-item">
 
-                        <div>
+                      <div className="evidence-number">
+                        01
+                      </div>
 
-                          <strong>
-                            {item.source}
-                          </strong>
+                      <div>
 
-                          <span className="evidence-strength high">
-                            EVIDENCE
-                          </span>
+                        <strong>
+                          Voltage instability detected
+                        </strong>
 
-                          <p>
-                            {item.finding}
-                          </p>
+                        <span className="evidence-strength high">
+                          HIGH
+                        </span>
 
-                          <small>
-                            Source: {item.source}
-                          </small>
+                        <p>
+                          Bus voltage dropped from
+                          21.4 V to 15.9 V.
+                        </p>
 
-                        </div>
+                        <small>
+                          Source: Telemetry #2841
+                        </small>
 
                       </div>
 
-                    ))}
+                    </div>
+
+
+                    {/* EVIDENCE 02 */}
+
+                    <div className="evidence-item">
+
+                      <div className="evidence-number">
+                        02
+                      </div>
+
+                      <div>
+
+                        <strong>
+                          Temperature increased
+                        </strong>
+
+                        <span className="evidence-strength high">
+                          HIGH
+                        </span>
+
+                        <p>
+                          Communication subsystem
+                          temperature increased from
+                          34°C to 51°C.
+                        </p>
+
+                        <small>
+                          Source: Telemetry #2842
+                        </small>
+
+                      </div>
+
+                    </div>
+
+
+                    {/* EVIDENCE 03 */}
+
+                    <div className="evidence-item">
+
+                      <div className="evidence-number">
+                        03
+                      </div>
+
+                      <div>
+
+                        <strong>
+                          Signal degradation followed
+                        </strong>
+
+                        <span className="evidence-strength medium">
+                          MEDIUM
+                        </span>
+
+                        <p>
+                          Signal strength degraded to
+                          -82 dBm before communication
+                          failure.
+                        </p>
+
+                        <small>
+                          Source: Communication Log #182
+                        </small>
+
+                      </div>
+
+                    </div>
+
+
+                    {/* EVIDENCE 04 */}
+
+                    <div className="evidence-item">
+
+                      <div className="evidence-number">
+                        04
+                      </div>
+
+                      <div>
+
+                        <strong>
+                          Historical incident match
+                        </strong>
+
+                        <span className="evidence-strength high">
+                          HIGH
+                        </span>
+
+                        <p>
+                          Similar voltage and thermal
+                          behavior was observed during
+                          previous incident M-21.
+                        </p>
+
+                        <small>
+                          Source: Incident Archive M-21
+                        </small>
+
+                      </div>
+
+                    </div>
 
                   </div>
 
+
+                  {/* RECOMMENDATIONS */}
 
                   <div className="recommendations">
 
@@ -1049,44 +1114,93 @@ function App() {
                       Recommended Actions
                     </h3>
 
-                    {analysisData.recommendations?.map(
-                      (recommendation, index) => (
 
-                        <div
-                          className="recommendation"
-                          key={index}
-                        >
+                    {/* RECOMMENDATION 01 */}
 
-                          <span>
-                            {index + 1}
-                          </span>
+                    <div className="recommendation">
 
-                          <div className="recommendation-content">
+                      <span>
+                        1
+                      </span>
 
-                            <strong>
-                              MISSION ACTION
-                            </strong>
+                      <div className="recommendation-content">
 
-                            <p>
-                              {recommendation}
-                            </p>
+                        <strong>
+                          POWER SYSTEM
+                        </strong>
 
-                            <small>
-                              Priority:{" "}
-                              {index < 2
-                                ? "HIGH"
-                                : "MEDIUM"}
-                            </small>
+                        <p>
+                          Inspect communication subsystem
+                          power supply.
+                        </p>
 
-                          </div>
+                        <small>
+                          Priority: HIGH
+                        </small>
 
-                        </div>
+                      </div>
 
-                      )
-                    )}
+                    </div>
+
+
+                    {/* RECOMMENDATION 02 */}
+
+                    <div className="recommendation">
+
+                      <span>
+                        2
+                      </span>
+
+                      <div className="recommendation-content">
+
+                        <strong>
+                          THERMAL SYSTEM
+                        </strong>
+
+                        <p>
+                          Verify transmitter thermal condition.
+                        </p>
+
+                        <small>
+                          Priority: HIGH
+                        </small>
+
+                      </div>
+
+                    </div>
+
+
+                    {/* RECOMMENDATION 03 */}
+
+                    <div className="recommendation">
+
+                      <span>
+                        3
+                      </span>
+
+                      <div className="recommendation-content">
+
+                        <strong>
+                          COMMUNICATION SYSTEM
+                        </strong>
+
+                        <p>
+                          Check antenna and communication
+                          subsystem status.
+                        </p>
+
+                        <small className="priority-medium">
+                          Priority: MEDIUM
+                        </small>
+
+                      </div>
+
+                    </div>
 
                   </div>
 
+
+                  {/* TIMELINE */}
 
                   <div className="timeline">
 
@@ -1094,21 +1208,31 @@ function App() {
                       Analysis Timeline
                     </h3>
 
-                    {analysisData.timeline?.map(
-                      (item, index) => (
 
-                        <div key={index}>
+                    <div>
+                      <span>14:32:01</span>
+                      Incident detected
+                    </div>
 
-                          <span>
-                            {item.time}
-                          </span>
+                    <div>
+                      <span>14:32:05</span>
+                      Telemetry retrieved
+                    </div>
 
-                          {item.event}
+                    <div>
+                      <span>14:32:08</span>
+                      Historical incident matched
+                    </div>
 
-                        </div>
+                    <div>
+                      <span>14:32:10</span>
+                      Root cause analysis generated
+                    </div>
 
-                      )
-                    )}
+                    <div>
+                      <span>14:32:11</span>
+                      Recommendations generated
+                    </div>
 
                   </div>
 

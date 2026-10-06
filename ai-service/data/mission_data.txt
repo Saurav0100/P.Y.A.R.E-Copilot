@@ -1,0 +1,26 @@
+MISSION: ORBIT-X1
+
+The ORBIT-X1 satellite is an Earth observation satellite.
+
+At 14:30, the communication subsystem voltage was 21.4V.
+
+At 14:31, the communication subsystem voltage decreased to 20.8V.
+
+At 14:32, the voltage decreased sharply to 16.8V.
+
+At 14:32, the communication subsystem entered a degraded state.
+
+At 14:33, communication with the ground station was lost.
+
+The transmitter temperature reached 51°C at 14:32.
+
+Previous Incident M-21:
+
+During a previous mission, a similar communication failure occurred after a significant voltage drop. The incident was caused by instability in the communication power subsystem.
+
+Recommended diagnostic procedure:
+
+1. Check the communication power supply.
+2. Check transmitter temperature.
+3. Verify antenna subsystem status.
+4. Compare current telemetry with previous communication failures.

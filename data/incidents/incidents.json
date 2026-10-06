@@ -1,0 +1,40 @@
+[
+  {
+    "incident_id": "INC-001",
+    "date": "2031-06-14",
+    "subsystem": "Communication",
+    "severity": "HIGH",
+    "symptoms": [
+      "Communication signal degradation",
+      "Voltage drop",
+      "Transmitter temperature increase"
+    ],
+    "root_cause": "Communication power instability",
+    "resolution": [
+      "Communication subsystem power was stabilized",
+      "Transmitter temperature was reduced",
+      "Communication link was restored"
+    ],
+    "operator_action": "Controlled communication subsystem reset",
+    "status": "RESOLVED"
+  },
+  {
+    "incident_id": "INC-002",
+    "date": "2031-07-09",
+    "subsystem": "Power",
+    "severity": "MEDIUM",
+    "symptoms": [
+      "Rapid battery level decrease",
+      "Voltage decrease",
+      "Low power reserve"
+    ],
+    "root_cause": "Abnormal battery discharge",
+    "resolution": [
+      "Reduced non-essential power consumption",
+      "Adjusted battery management settings",
+      "Monitored battery recovery"
+    ],
+    "operator_action": "Reduce non-essential power loads",
+    "status": "RESOLVED"
+  }
+]
